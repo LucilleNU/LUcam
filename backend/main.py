@@ -7,6 +7,8 @@ What is this module for?
 import logging
 from contextlib import _RedirectStream
 import datetime
+import random
+import string
 import cv2
 from flask import Flask, redirect,render_template, Response, request, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -137,6 +139,33 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json
+    email = data['email']
+    user = User.query.filter_by(email=email).first()
+    if user:
+        # generate a new password
+        new_password = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=8))
+        
+        # hash the new password
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # update the user's password
+        user.password = hashed_password
+        db.session.commit()
+        
+        # return the new password as JSON data
+        response_data = {'new_password': new_password}
+        response = jsonify(response_data)
+        response.status_code = 200
+    else:
+        # return an error message if the email is not found
+        response_data = {'error': 'User not found'}
+        response = jsonify(response_data)
+        response.status_code = 404
+    return response
 
 
 # @app.route('/video_feed')

@@ -131,8 +131,8 @@ function Basic() {
               <MDTypography variant="button" color="text">
                 Forgot Password?{" "}
                 <MDTypography
-                  // component={Link}
-                  // to="/authentication/sign-up"
+                  component={Link}
+                  to="/reset-password"
                   variant="button"
                   color="info"
                   fontWeight="medium"

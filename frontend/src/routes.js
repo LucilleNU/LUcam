@@ -29,6 +29,7 @@ import Recordings from "layouts/recordings";
 // import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+// import ResetPassword from "layouts/reset_password";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -66,6 +67,13 @@ const routes = [
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
+  // {
+  //   type: "collapse",
+  //   name: "Reset Password",
+  //   key: "reset_password",
+  //   route: "/reset_password",
+  //   component: <ResetPassword />,
+  // },
 ];
 
 export default routes;

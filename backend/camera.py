@@ -42,19 +42,18 @@ public_id = 'samples/output_video'
 timestamp = str(int(time.time()))
 signature = hashlib.sha1(f"timestamp={timestamp}{api_secret}".encode('utf-8')).hexdigest()
 
-# url = 'https://api.cloudinary.com/v1_1/dq4l61m3h/video/upload'
-# files = {'file': open('./output_video.mp4', 'rb')}
-# auth_data = {
-#     'api_key':  "637113654295649",
-#     'timestamp': timestamp,
-#     'signature': signature
-# }
-# response = requests.post(url, files=files,data=auth_data)
-# if response.status_code == 200:
-#     print('Upload successful.')
-# else:
-#     print('Upload failed.')
-
+url = 'https://api.cloudinary.com/v1_1/dq4l61m3h/video/upload'
+files = {'file': open('./output_video.mp4', 'rb')}
+auth_data = {
+    'api_key':  "637113654295649",
+    'timestamp': timestamp,
+    'signature': signature
+}
+response = requests.post(url, files=files,data=auth_data)
+if response.status_code == 200:
+    print('Upload successful.')
+else:
+    print('Upload failed.')
 
 def motion(pimg):
     cap = cv2.cvtColor(pimg, cv2.COLOR_RGB2BGR)    
@@ -208,7 +207,7 @@ def merge_and_upload():
         video.write(frame_bgr)
 
     video.release()
-    response = cloudinary.uploader.unsigned_upload(
+    response = unsigned_upload(
     video_path,
     'jzfnfrsi',
      cloud_name = "dq4l61m3h",
@@ -217,17 +216,18 @@ def merge_and_upload():
     timestamp=timestamp,
     signature=signature,
     resource_type='video'
+    
 )
-        # Send the video file to the specified URL using an HTTP POST request
-
+    # Send the video file to the specified URL using an HTTP POST request
     
     video_url = response['secure_url']
-    print(f"Video uploaded successfully. URL: {video_url}")
+    base_url, video_id = video_url.rsplit('/', 1)
+
+    # Add 'q_auto' parameter after 'upload' in the base URL
+    modified_url = base_url + '/q_auto/' + video_id
+    print(f"Video uploaded successfully. URL: {modified_url}")
 
 frames = []
-
-
-      
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=8000)
