@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <!-- Responsive -->
+        <meta charset="utf-8">
+        <meta name="viewport"
+                content="width=device-width,
+                        initial-scale=1">
+        <meta http-equiv="X-UA-Compatible"
+                content="ie=edge">
+        
+        <!-- Title -->
+        <title>Login</title>
+
+        <body>
+            <hi>Login Page</hi>
+
+            <form method="POST" action='/dashboard'>
+                {{ form.hidden_tag() }}
+                {{ form.username }}
+                {{ form.password }}
+                {{ form.submit }}
+            </form>
+
+            <a href="{{ url_for('register') }}">Don't have an account? Sign Up</a><br>
+
+        </body>
+    </head>
+</html>

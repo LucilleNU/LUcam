@@ -1,0 +1,113 @@
+<html>
+    <head>
+        <!-- Responsive -->
+        <meta charset="utf-8">
+        <meta name="viewport"
+                content="width=device-width,
+                        initial-scale=1">
+        <meta http-equiv="X-UA-Compatible"
+                content="ie=edge">
+        
+        <!-- Title -->
+        <title>PWA for Human Motion Detector</title>
+        
+        <!-- Meta Tags required for
+            Progressive Web App -->
+        <meta name=
+        "apple-mobile-web-app-status-bar"
+                content="#aa7700">
+        <meta name="theme-color"
+                content="black">
+        
+        <!-- Manifest File link -->
+        <link rel="icon" sizes="192x192" href="{{ url_for('static', filename='images/logo.png') }}">
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+        <link rel="stylesheet" href="/static/styles.css">
+
+
+         <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" />
+         <link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300' rel='stylesheet' type='text/css'>
+
+        <!-- <link rel="manifest"
+                href="/Users/lucillenawa/Downloads/LUcam/templates/manifest.json"> -->
+
+                <script>
+
+                        function requestNotificationPermission() {
+                            if (Notification.permission === 'granted') {
+                                console.log('User has already allowed notifications');
+                            } else {
+                                if (Notification.permission !== 'denied') {
+                                    // Show a popup message asking the user if they want to allow notifications
+                                    if (confirm('Do you want to allow notifications?')) {
+                                        Notification.requestPermission().then(function (permission) {
+                                            if (permission === 'granted') {
+                                                console.log('User allowed notifications');
+                                            } else {
+                                                console.log('User denied notifications');
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    console.log('User has denied notifications');
+                                }
+                            }
+                        }
+
+
+                    function toggleNotification(status) {
+                        if (status === 'yes') {
+                            setTimeout(requestNotificationPermission, 1000);
+                        }
+
+                        fetch('/toggle_notification', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'status=' + status + '&permission=' + Notification.permission
+                        });
+                    }
+
+
+
+                </script>
+    </head>
+    <body>
+        <div class="jumbotron">
+            <h1>WELCOME TO LUCAM: The Next BIG Thing for Human Motion Detection!</h1>
+            <div style="width:200px;border:1px">
+                <h2 style="width: 150px;white-space:nowrap;overflow: hidden;
+                text-overflow: ellipsis;">Notifications</h2>
+
+                    <div class="toggle-radio">
+                        <input type="radio" name="rdo" id="yes" onclick="toggleNotification('yes')">
+                        <input type="radio" name="rdo" id="no" checked onclick="toggleNotification('no')">
+                        <div class="switch">
+                            <label for="yes">Yes</label>
+                            <label for="no">No</label>
+                            <span></span>
+                        </div>
+                    </div>
+            </div>   
+            <div class="container">
+                <div class="vertical-center">
+                  <button class="add-button">Add To Home Screen</button>
+                  <a href="{{url_for('logout')}}">logout</a>
+            </div>
+            <img id="bg" src="{{ url_for('video_feed') }}">
+            
+        </div>
+        <main>
+            <div class="container">
+                {% block body %}
+                {% endblock %}
+            </div>
+        </main>
+        <!-- <script src="push.js" defer></script> -->
+    
+        <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    </body>
+</html>
+

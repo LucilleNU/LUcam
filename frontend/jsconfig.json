@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "types": ["@types/node", "@types/aria-query"],
+    "baseUrl": "src"
+  }
+}
