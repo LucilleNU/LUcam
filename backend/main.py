@@ -7,6 +7,7 @@ What is this module for?
 import logging
 from contextlib import _RedirectStream
 import datetime
+import unittest
 import cv2
 from flask import Flask, redirect,render_template, Response, request, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -35,18 +36,16 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
-db = SQLAlchemy(app)  # gets variables from environment
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'thisisasecretkey' # Set a secret key for Flask sessions  
+
+db = SQLAlchemy(app)  # gets variables from environment
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 current_user_username = ''
-
-
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -58,9 +57,6 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(40), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
     video_urls = db.Column(db.String(200))  # New column for video URLs
-
-    
-
 
 class RegisterForm(FlaskForm):
     username = StringField(validators=[
