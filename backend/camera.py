@@ -17,7 +17,16 @@ import logging
 from time import sleep
 import hashlib
 import requests
+import cloudinary
 
+
+
+import sqlite3
+
+from cloudinary.uploader import unsigned_upload,upload
+from cloudinary.utils import cloudinary_url
+
+from flask import jsonify
 
 from flask_cors import CORS
 import imutils
@@ -25,10 +34,6 @@ app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-import cloudinary
-
-from cloudinary.uploader import unsigned_upload,upload
-from cloudinary.utils import cloudinary_url
 
 cloudinary.config(
   cloud_name = "dq4l61m3h",
@@ -42,18 +47,6 @@ public_id = 'samples/output_video'
 timestamp = str(int(time.time()))
 signature = hashlib.sha1(f"timestamp={timestamp}{api_secret}".encode('utf-8')).hexdigest()
 
-url = 'https://api.cloudinary.com/v1_1/dq4l61m3h/video/upload'
-files = {'file': open('./output_video.mp4', 'rb')}
-auth_data = {
-    'api_key':  "637113654295649",
-    'timestamp': timestamp,
-    'signature': signature
-}
-response = requests.post(url, files=files,data=auth_data)
-if response.status_code == 200:
-    print('Upload successful.')
-else:
-    print('Upload failed.')
 
 def motion(pimg):
     cap = cv2.cvtColor(pimg, cv2.COLOR_RGB2BGR)    
@@ -216,18 +209,28 @@ def merge_and_upload():
     timestamp=timestamp,
     signature=signature,
     resource_type='video'
-    
 )
-    # Send the video file to the specified URL using an HTTP POST request
+        # Send the video file to the specified URL using an HTTP POST request
+
     
     video_url = response['secure_url']
-    base_url, video_id = video_url.rsplit('/', 1)
+    last_part = video_url.split('/')[-1]
+    modified_url='https://res.cloudinary.com/dq4l61m3h/video/upload/q_auto/'+last_part
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('SELECT username FROM current_user ORDER BY id DESC LIMIT 1')
+    result = cur.fetchone()
+    current_user_username = result[0] if result else ''
+    cur.execute('INSERT INTO videos (username, url) VALUES (?, ?)', (current_user_username, modified_url))
+    conn.commit()
+    conn.close()
 
-    # Add 'q_auto' parameter after 'upload' in the base URL
-    modified_url = base_url + '/q_auto/' + video_id
     print(f"Video uploaded successfully. URL: {modified_url}")
 
 frames = []
+
+
+      
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=8000)

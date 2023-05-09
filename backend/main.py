@@ -7,8 +7,6 @@ What is this module for?
 import logging
 from contextlib import _RedirectStream
 import datetime
-import random
-import string
 import cv2
 from flask import Flask, redirect,render_template, Response, request, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -25,6 +23,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
+import sqlite3
+
 
 logging.debug("Version:", __version__)
 load_dotenv()  # loads variables from .env file into environment
@@ -43,6 +43,10 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+current_user_username = ''
+
+
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -53,6 +57,9 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), nullable=False, unique=True)
     email = db.Column(db.String(40), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
+    video_urls = db.Column(db.String(200))  # New column for video URLs
+
+    
 
 
 class RegisterForm(FlaskForm):
@@ -83,7 +90,6 @@ class LoginForm(FlaskForm):
 
     submit = SubmitField('Login')
 
-
 @app.route('/')
 
 
@@ -99,7 +105,15 @@ def login():
     formPpassword = data['password']
     user = User.query.filter_by(username=formUsername).first()
     if user:
+
         if bcrypt.check_password_hash(user.password, formPpassword):
+            conn = sqlite3.connect('database.db')
+            cur = conn.cursor()
+            cur.execute('INSERT INTO current_user (username) VALUES (?)', (user.username,))
+            conn.commit()
+            conn.close()
+            response = jsonify({'message': 'Login successful'})
+            response.status_code = 200
             response = jsonify({'message': 'Login successful'})
             response.status_code = 200
         else:
@@ -110,7 +124,20 @@ def login():
         response.status_code = 404  # Not Found
     return response    
     
+@app.route('/recordings',methods=['GET'])
+def recordings():
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('SELECT username FROM current_user ORDER BY id DESC LIMIT 1')
+    current_user = cur.fetchone()
+    print(current_user)
+    cur.execute('SELECT url FROM videos WHERE username = ?', (current_user[0],))
+    result = cur.fetchall()
+    print("RESULT:", result)
 
+    conn.close()
+    data = {'data': result}
+    return jsonify(data)
     
 @app.route('/register', methods=['POST'])
 def register():
@@ -140,33 +167,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/reset-password', methods=['POST'])
-def reset_password():
-    data = request.json
-    email = data['email']
-    user = User.query.filter_by(email=email).first()
-    if user:
-        # generate a new password
-        new_password = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=8))
-        
-        # hash the new password
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # update the user's password
-        user.password = hashed_password
-        db.session.commit()
-        
-        # return the new password as JSON data
-        response_data = {'new_password': new_password}
-        response = jsonify(response_data)
-        response.status_code = 200
-    else:
-        # return an error message if the email is not found
-        response_data = {'error': 'User not found'}
-        response = jsonify(response_data)
-        response.status_code = 404
-    return response
-
 
 # @app.route('/video_feed')
 # def video_feed():
@@ -175,7 +175,6 @@ def reset_password():
 #     """
 #     return Response(gen(),
 #                     mimetype='multipart/x-mixed-replace; boundary=frame')
-
 
 @app.route('/start-recording', methods=['POST'])
 def start_recording():
@@ -229,4 +228,4 @@ def toggle_notification():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=5000)
+    app.run(debug=True)

@@ -45,6 +45,7 @@ function Basic() {
           navigator("/dashboard");
           return response.json();
         }
+        console.log("Wrong login");
         throw new Error("Login failed");
       })
       .then((jsonData) => {
@@ -132,7 +133,7 @@ function Basic() {
                 Forgot Password?{" "}
                 <MDTypography
                   component={Link}
-                  to="/reset-password"
+                  to="/authentication/sign-up"
                   variant="button"
                   color="info"
                   fontWeight="medium"
