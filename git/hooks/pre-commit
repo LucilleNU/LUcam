@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Run pylint
+pylint --exit-zero <backend/main.py /backend/camera.py>
+
+# Run flake8
+flake8 <backend/main.py /backend/camera.py>
+
+# If either pylint or flake8 fails, exit with an error status
+if [ $? -ne 0 ]; then
+    exit 1
+fi
